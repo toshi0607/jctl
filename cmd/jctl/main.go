@@ -18,7 +18,7 @@ import (
 func main() {
 	var kubeconfig *string
 	if home := homeDir(); home != "" {
-		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "kind-config-kind"), "(optional) absolute path to the kubeconfig file")
 	} else {
 		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 	}
@@ -27,18 +27,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	clientser, err := kubernetes.NewForConfig(config)
+	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		log.Fatal(err)
 	}
 	// construct job
-	jobName := "job1"
+	jobName := "jctl-job"
 	job := &batchv1.Job{
-		//TypeMeta: metav1.TypeMeta{APIVersion: batchv1.SchemeGroupVersion.String(), Kind: "Job"},
+		TypeMeta: metav1.TypeMeta{APIVersion: batchv1.SchemeGroupVersion.String(), Kind: "Job"},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      jobName,
+			GenerateName:      jobName,
 			Namespace: "default",
-			//CreationTimestamp: metav1.Time{Time: time.Now()},
 		},
 		Spec: batchv1.JobSpec{
 			Template: corev1.PodTemplateSpec{
@@ -55,13 +54,14 @@ func main() {
 			},
 		},
 	}
-	job, err = clientser.BatchV1().Jobs("default").Create(job)
+	job, err = clientset.BatchV1().Jobs("default").Create(job)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println(job)
 }
 
+// TODO: check KUBECONFIG as well
 func homeDir() string {
 	if h := os.Getenv("HOME"); h != "" {
 		return h
