@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -17,7 +18,7 @@ import (
 )
 
 type JobCli interface {
-	Create(image string) error
+	Create(ctx context.Context, image string) error
 }
 
 type (
@@ -87,7 +88,7 @@ func homeDir() string {
 	return os.Getenv("USERPROFILE")
 }
 
-func (c *jobCli) Create(image string) error {
+func (c *jobCli) Create(ctx context.Context, image string) error {
 	jobName := "jctl-job"
 	job := &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{APIVersion: batchv1.SchemeGroupVersion.String(), Kind: "Job"},
@@ -121,6 +122,8 @@ func (c *jobCli) Create(image string) error {
 	ch := w.ResultChan()
 	for {
 		select {
+		case <-ctx.Done():
+			return ctx.Err()
 		case obj := <-ch:
 			job, ok := obj.Object.(*batchv1.Job)
 			if !ok {
