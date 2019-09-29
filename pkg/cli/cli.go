@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/jessevdk/go-flags"
+	"github.com/pkg/errors"
 	"github.com/toshi0607/jctl/pkg/gobuild"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -47,7 +49,32 @@ func New(outStream, errStream io.Writer, version string) CLI {
 	}
 }
 
+func (c *cli) initConfig() error {
+	p := flags.NewParser(&c.Config, flags.None)
+	_, err := p.Parse()
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse. Config: %s", &c.Config)
+	}
+
+	if c.Config.Version {
+		return fmt.Errorf("gig version %s", c.Version)
+	}
+
+	if c.Config.Help || c.Config.Args.Path == "" {
+		p.WriteHelp(c.ErrStream)
+		return errors.New("")
+	}
+
+	return nil
+}
+
 func (c *cli) Run() int {
+	err := c.initConfig()
+	if err != nil {
+		fmt.Fprintln(c.ErrStream, err)
+		return 1
+	}
+
 	builder, err := gobuild.MakeBuilder()
 	if err != nil {
 		log.Fatal(err)
@@ -56,7 +83,7 @@ func (c *cli) Run() int {
 	if err != nil {
 		log.Fatal(err)
 	}
-	ref, err := gobuild.PublishImages("github.com/toshi0607/jctl/testdata/cmd/long_hello_world", publisher, builder)
+	ref, err := gobuild.PublishImages(c.Config.Args.Path, publisher, builder)
 	if err != nil {
 		log.Fatal(err)
 	}
