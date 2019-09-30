@@ -51,7 +51,7 @@ func (c *cli) initConfig() error {
 	p := flags.NewParser(&c.Config, flags.None)
 	_, err := p.Parse()
 	if err != nil {
-		return errors.Wrapf(err, "failed to parse. Config: %s", &c.Config)
+		return errors.Wrap(err, "failed to parse config")
 	}
 
 	if c.Config.Version {
@@ -95,7 +95,7 @@ func (c *cli) Run() int {
 	}
 	fmt.Println("published")
 
-	k, err := kubernetes.New(c.OutStream, c.ErrStream, c.Config.Namespace, c.Config.KubeConfig)
+	k, err := kubernetes.New(c.OutStream, c.Config.Namespace, c.Config.KubeConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
