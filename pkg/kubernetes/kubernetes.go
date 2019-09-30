@@ -92,6 +92,7 @@ func (c *jobCli) Create(ctx context.Context, image string) error {
 	for {
 		select {
 		case <-ctx.Done():
+			c.log.Printf("job execution timeout name: %s\n", createdJob.Name)
 			return errors.Wrap(ctx.Err(), "job execution timeout")
 		case obj := <-ch:
 			job, ok := obj.Object.(*batchv1.Job)

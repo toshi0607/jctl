@@ -102,7 +102,8 @@ func (c *cli) Run() int {
 
 	err = k.Create(ctx, ref.Name())
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintln(c.ErrStream, err)
+		return 1
 	}
 
 	return 0

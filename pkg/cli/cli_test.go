@@ -19,6 +19,11 @@ func TestCli_Run(t *testing.T) {
 			wantOutputs: []string{"job finished", "job created"},
 			wantCode:    0,
 		},
+		"timeout": {
+			args:        []string{"path", "github.com/toshi0607/jctl/testdata/cmd/long_hello_world", "-t", "5"},
+			wantOutputs: []string{"job execution timeout", "job created"},
+			wantCode:    1,
+		},
 	}
 
 	for _, te := range tests {
@@ -39,5 +44,3 @@ func TestCli_Run(t *testing.T) {
 		}
 	}
 }
-
-// TODO: 出力先を全部書き換え
