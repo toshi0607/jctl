@@ -1,3 +1,5 @@
+// +build e2e
+
 package cli
 
 import (
@@ -26,7 +28,7 @@ func TestCli_Run(t *testing.T) {
 		},
 	}
 
-	for _, te := range tests {
+	for name, te := range tests {
 		te := te
 		stream := new(bytes.Buffer)
 		cli := New(stream, stream, "test")
@@ -34,12 +36,12 @@ func TestCli_Run(t *testing.T) {
 		status := cli.Run()
 
 		if status != te.wantCode {
-			t.Errorf("ExitStatus=%d, want %d", status, te.wantCode)
+			t.Errorf("[%s] status got: %d, want: %d", name, status, te.wantCode)
 		}
 		for _, v := range te.wantOutputs {
 			wantOut := fmt.Sprintf(v)
 			if !strings.Contains(stream.String(), wantOut) {
-				t.Errorf("[%s] actual: %s, want: %s", te.args[0], stream.String(), wantOut)
+				t.Errorf("[%s] got: %s, want: %s", name, stream.String(), wantOut)
 			}
 		}
 	}

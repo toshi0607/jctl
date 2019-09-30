@@ -451,7 +451,7 @@ func NewDefault() (Publisher, error) {
 		base:  base,
 		t:     http.DefaultTransport,
 		auth:  auth,
-		namer: identity,
+		namer: packageWithMD5,
 		tags:  defaultTags,
 	}, nil
 
