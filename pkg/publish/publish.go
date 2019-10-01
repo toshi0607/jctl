@@ -15,7 +15,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
-	"github.com/toshi0607/jctl/pkg/gobuild"
+	"github.com/toshi0607/jctl/pkg/build"
 	"github.com/toshi0607/jctl/pkg/path"
 )
 
@@ -94,7 +94,7 @@ func packageWithMD5(importpath string) string {
 	return filepath.Base(importpath) + "-" + hex.EncodeToString(hasher.Sum(nil))
 }
 
-func PublishImages(importpath string, pub Publisher, b gobuild.Builder) (name.Reference, error) {
+func PublishImages(importpath string, pub Publisher, b build.Builder) (name.Reference, error) {
 	path, err := path.NewBuilder(importpath).Build()
 	if err != nil {
 		return nil, err

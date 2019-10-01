@@ -9,7 +9,7 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
-	"github.com/toshi0607/jctl/pkg/gobuild"
+	"github.com/toshi0607/jctl/pkg/build"
 	"github.com/toshi0607/jctl/pkg/kubernetes"
 	"github.com/toshi0607/jctl/pkg/publish"
 )
@@ -82,7 +82,7 @@ func (c *cli) Run() int {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	builder, err := gobuild.MakeBuilder()
+	builder, err := build.MakeBuilder()
 	if err != nil {
 		log.Fatal(err)
 	}
