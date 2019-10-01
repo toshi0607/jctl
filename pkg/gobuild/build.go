@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
-	"encoding/json"
 	"errors"
 	gb "go/build"
 	"io"
@@ -33,7 +32,6 @@ type builder struct {
 	baseImage    v1.Image
 	creationTime v1.Time
 	module       *Module
-	// build builder Goアプリケーションをビルドするための関数
 }
 
 type Module struct {
@@ -42,29 +40,7 @@ type Module struct {
 }
 
 func MakeBuilder() (Builder, error) {
-	return &builder{
-		module: moduleInfo(),
-	}, nil
-}
-
-// go list -mod=readonly -m -json
-// {
-//   "Path": "github.com/toshi0607/jctl",
-//   "Main": true,
-//   "Dir": "/Users/toshi0607/dev/go/src/github.com/toshi0607/jctl",
-//   "GoMod": "/Users/toshi0607/dev/go/src/github.com/toshi0607/jctl/go.mod",
-//   "GoVersion": "1.13"
-// }
-func moduleInfo() *Module {
-	output, err := exec.Command("go", "list", "-mod=readonly", "-m", "-json").Output()
-	if err != nil {
-		return nil
-	}
-	var info Module
-	if err := json.Unmarshal(output, &info); err != nil {
-		return nil
-	}
-	return &info
+	return &builder{}, nil
 }
 
 func (b *builder) Build(importpath string) (v1.Image, error) {

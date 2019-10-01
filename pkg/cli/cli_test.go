@@ -16,12 +16,17 @@ func TestCli_Run(t *testing.T) {
 		wantOutputs []string
 		wantCode    int
 	}{
-		"normal": {
-			args:        []string{"path", "github.com/toshi0607/jctl/testdata/cmd/long_hello_world"},
+		"with import path": {
+			args:        []string{"path", "github.com/toshi0607/jctl/testdata/cmd/hello_world"},
 			wantOutputs: []string{"job finished", "job created"},
 			wantCode:    0,
 		},
-		"timeout": {
+		"with relative path": {
+			args:        []string{"path", "../../testdata/cmd/hello_world"},
+			wantOutputs: []string{"job finished", "job created"},
+			wantCode:    0,
+		},
+		"with timeout option": {
 			args:        []string{"path", "github.com/toshi0607/jctl/testdata/cmd/long_hello_world", "-t", "5"},
 			wantOutputs: []string{"job execution timeout", "job created"},
 			wantCode:    1,
