@@ -4,14 +4,12 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"time"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
-	"github.com/toshi0607/jctl/pkg/build"
 	"github.com/toshi0607/jctl/pkg/kubernetes"
-	"github.com/toshi0607/jctl/pkg/publish"
+	"github.com/toshi0607/jctl/pkg/workflow"
 )
 
 const defaultTimeoutSecond = 5 * time.Minute
@@ -82,26 +80,19 @@ func (c *cli) Run() int {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	builder, err := build.NewBuilder()
+	image, err := workflow.New(c.OutStream).Execute(ctx, c.Config.Args.Path)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintln(c.ErrStream, err)
+		return 1
 	}
-	publisher, err := publish.New()
-	if err != nil {
-		log.Fatal(err)
-	}
-	ref, err := publish.PublishImages(c.Config.Args.Path, publisher, builder)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("published")
 
 	k, err := kubernetes.New(c.OutStream, c.Config.Namespace, c.Config.KubeConfig)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintln(c.ErrStream, err)
+		return 1
 	}
 
-	err = k.Create(ctx, ref.Name())
+	err = k.Create(ctx, image)
 	if err != nil {
 		fmt.Fprintln(c.ErrStream, err)
 		return 1
