@@ -6,6 +6,7 @@ import (
 	"compress/gzip"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -35,16 +36,19 @@ type Builder interface {
 }
 
 type builder struct {
+	log          *log.Logger
 	baseImage    v1.Image
 	creationTime v1.Time
 }
 
-func NewBuilder() (Builder, error) {
+func NewBuilder(log *log.Logger) (Builder, error) {
+	log.SetPrefix("build: ")
 	base, err := getBaseImage()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get base image")
 	}
 	return &builder{
+		log:          log,
 		baseImage:    base,
 		creationTime: v1.Time{Time: time.Now()},
 	}, nil

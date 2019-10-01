@@ -26,6 +26,7 @@ type Publisher interface {
 type Namer func(string) string
 
 type publisher struct {
+	log      *log.Logger
 	base     string
 	rt       http.RoundTripper
 	auth     authn.Authenticator
@@ -35,7 +36,8 @@ type publisher struct {
 
 var defaultTag = "latest"
 
-func New() (Publisher, error) {
+func New(log *log.Logger) (Publisher, error) {
+	log.SetPrefix("publish: ")
 	repoName := os.Getenv("JCTL_DOCKER_REPO")
 	if repoName == "" {
 		return nil, errors.New("JCTL_DOCKER_REPO environment variable is required")
@@ -53,6 +55,7 @@ func New() (Publisher, error) {
 	}
 
 	return &publisher{
+		log:   log,
 		base:  repoName,
 		rt:    http.DefaultTransport,
 		auth:  auth,
