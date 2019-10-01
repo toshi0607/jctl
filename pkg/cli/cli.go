@@ -1,15 +1,19 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
+	"time"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
 	"github.com/toshi0607/jctl/pkg/gobuild"
 	"github.com/toshi0607/jctl/pkg/kubernetes"
 )
+
+const defaultTimeoutSecond = 5 * time.Minute
 
 type CLI interface {
 	Run() int
@@ -27,6 +31,7 @@ type (
 		Version    bool   `short:"v" long:"version" description:"Show version"`
 		Help       bool   `short:"h" long:"help" description:"Show this help message"`
 		KubeConfig string `long:"kubeconfig" description:"absolute path to K8s credential"`
+		TimeoutSec int    `short:"t" long:"timeoutsec" description:"timeout second"`
 		Args       struct {
 			Path string
 		} `positional-args:"yes"`
@@ -46,7 +51,7 @@ func (c *cli) initConfig() error {
 	p := flags.NewParser(&c.Config, flags.None)
 	_, err := p.Parse()
 	if err != nil {
-		return errors.Wrapf(err, "failed to parse. Config: %s", &c.Config)
+		return errors.Wrap(err, "failed to parse config")
 	}
 
 	if c.Config.Version {
@@ -62,11 +67,19 @@ func (c *cli) initConfig() error {
 }
 
 func (c *cli) Run() int {
+	ctx := context.Background()
+
 	err := c.initConfig()
 	if err != nil {
 		fmt.Fprintln(c.ErrStream, err)
 		return 1
 	}
+	timeout := defaultTimeoutSecond
+	if c.Config.TimeoutSec != 0 {
+		timeout = time.Duration(c.Config.TimeoutSec) * time.Second
+	}
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
 
 	builder, err := gobuild.MakeBuilder()
 	if err != nil {
@@ -82,14 +95,15 @@ func (c *cli) Run() int {
 	}
 	fmt.Println("published")
 
-	k, err := kubernetes.New(c.OutStream, c.ErrStream, c.Config.Namespace, c.Config.KubeConfig)
+	k, err := kubernetes.New(c.OutStream, c.Config.Namespace, c.Config.KubeConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = k.Create(ref.Name())
+	err = k.Create(ctx, ref.Name())
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintln(c.ErrStream, err)
+		return 1
 	}
 
 	return 0
