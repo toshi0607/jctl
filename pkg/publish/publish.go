@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -15,8 +16,6 @@ import (
 	"github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
-	"github.com/toshi0607/jctl/pkg/build"
-	"github.com/toshi0607/jctl/pkg/path"
 )
 
 type Publisher interface {
@@ -36,8 +35,8 @@ type publisher struct {
 
 var defaultTag = "latest"
 
-func New(log *log.Logger) (Publisher, error) {
-	log.SetPrefix("publish: ")
+func New(outStream io.Writer) (Publisher, error) {
+	log := log.New(outStream, "publish: ", log.LstdFlags)
 	repoName := os.Getenv("JCTL_DOCKER_REPO")
 	if repoName == "" {
 		return nil, errors.New("JCTL_DOCKER_REPO environment variable is required")
@@ -95,21 +94,4 @@ func packageWithMD5(importpath string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(importpath))
 	return filepath.Base(importpath) + "-" + hex.EncodeToString(hasher.Sum(nil))
-}
-
-func PublishImages(importpath string, pub Publisher, b build.Builder) (name.Reference, error) {
-	path, err := path.NewBuilder(importpath).Build()
-	if err != nil {
-		return nil, err
-	}
-
-	img, err := b.Build(path)
-	if err != nil {
-		return nil, fmt.Errorf("error building %q: %v", path, err)
-	}
-	ref, err := pub.Publish(img, path)
-	if err != nil {
-		return nil, fmt.Errorf("error publishing %s: %v", path, err)
-	}
-	return ref, nil
 }

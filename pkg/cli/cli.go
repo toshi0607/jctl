@@ -8,8 +8,10 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
+	"github.com/toshi0607/jctl/pkg/build"
 	"github.com/toshi0607/jctl/pkg/kubernetes"
-	"github.com/toshi0607/jctl/pkg/workflow"
+	"github.com/toshi0607/jctl/pkg/path"
+	"github.com/toshi0607/jctl/pkg/publish"
 )
 
 const defaultTimeoutSecond = 5 * time.Minute
@@ -80,9 +82,32 @@ func (c *cli) Run() int {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	image, err := workflow.New(c.OutStream).Execute(ctx, c.Config.Args.Path)
+	builder, err := build.NewBuilder(c.OutStream)
 	if err != nil {
 		fmt.Fprintln(c.ErrStream, err)
+		return 1
+	}
+	publisher, err := publish.New(c.OutStream)
+	if err != nil {
+		fmt.Fprintln(c.ErrStream, err)
+		return 1
+	}
+	path, err := path.NewBuilder(c.Config.Args.Path).Build()
+	if err != nil {
+		fmt.Fprintln(c.ErrStream, err)
+		return 1
+	}
+
+	fmt.Fprintln(c.OutStream, "building image...")
+	img, err := builder.Build(path)
+	if err != nil {
+		fmt.Fprintln(c.ErrStream, errors.Wrapf(err, "failed to build image, path: %s", path))
+		return 1
+	}
+	fmt.Fprintln(c.OutStream, "publishing image...")
+	ref, err := publisher.Publish(img, path)
+	if err != nil {
+		fmt.Fprintln(c.ErrStream, errors.Wrapf(err, "failed to publish image, path: %s", path))
 		return 1
 	}
 
@@ -92,7 +117,7 @@ func (c *cli) Run() int {
 		return 1
 	}
 
-	err = k.Create(ctx, image)
+	err = k.Create(ctx, ref.Name())
 	if err != nil {
 		fmt.Fprintln(c.ErrStream, err)
 		return 1

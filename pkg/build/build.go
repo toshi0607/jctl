@@ -41,8 +41,8 @@ type builder struct {
 	creationTime v1.Time
 }
 
-func NewBuilder(log *log.Logger) (Builder, error) {
-	log.SetPrefix("build: ")
+func NewBuilder(outStream io.Writer) (Builder, error) {
+	log := log.New(outStream, "build: ", log.LstdFlags)
 	base, err := getBaseImage()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get base image")
