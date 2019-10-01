@@ -13,6 +13,7 @@ import (
 
 type Builder interface {
 	Build() (string, error)
+	ImportPackage(path string) (*build.Package, error)
 }
 
 type (
@@ -88,14 +89,14 @@ func ModInfo() *module {
 }
 
 func (b *builder) isSupportedReference(path string) bool {
-	p, err := b.importPackage(path)
+	p, err := b.ImportPackage(path)
 	if err != nil {
 		return false
 	}
 	return p.IsCommand()
 }
 
-func (b *builder) importPackage(path string) (*build.Package, error) {
+func (b *builder) ImportPackage(path string) (*build.Package, error) {
 	if b.mod == nil {
 		return build.Import(path, build.Default.GOPATH, build.ImportComment)
 	}

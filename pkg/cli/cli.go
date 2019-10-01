@@ -82,7 +82,7 @@ func (c *cli) Run() int {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	builder, err := build.MakeBuilder()
+	builder, err := build.NewBuilder()
 	if err != nil {
 		log.Fatal(err)
 	}
