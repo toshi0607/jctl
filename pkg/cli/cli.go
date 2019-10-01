@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/toshi0607/jctl/pkg/gobuild"
 	"github.com/toshi0607/jctl/pkg/kubernetes"
+	"github.com/toshi0607/jctl/pkg/publish"
 )
 
 const defaultTimeoutSecond = 5 * time.Minute
@@ -85,11 +86,11 @@ func (c *cli) Run() int {
 	if err != nil {
 		log.Fatal(err)
 	}
-	publisher, err := gobuild.NewDefault()
+	publisher, err := publish.New()
 	if err != nil {
 		log.Fatal(err)
 	}
-	ref, err := gobuild.PublishImages(c.Config.Args.Path, publisher, builder)
+	ref, err := publish.PublishImages(c.Config.Args.Path, publisher, builder)
 	if err != nil {
 		log.Fatal(err)
 	}

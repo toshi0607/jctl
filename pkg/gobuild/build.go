@@ -4,30 +4,22 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
-	"crypto/md5"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	gb "go/build"
 	"io"
 	"io/ioutil"
-	"log"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
-	"github.com/google/go-containerregistry/pkg/v1/mutate"
-	"github.com/google/go-containerregistry/pkg/v1/tarball"
-	"golang.org/x/tools/go/packages"
-
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
-	"github.com/google/go-containerregistry/pkg/v1/daemon"
+	"github.com/google/go-containerregistry/pkg/v1/mutate"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
+	"github.com/google/go-containerregistry/pkg/v1/tarball"
 )
 
 // Where jctldataRoot lives in the image.
@@ -382,204 +374,4 @@ func build(ip string, platform v1.Platform) (string, error) {
 		return "", err
 	}
 	return file, nil
-}
-
-// baseimgageの参照
-// remote.Image(ref, remote.WithAuthFromKeychain(authn.DefaultKeychain))
-
-type Publisher interface {
-	Publish(v1.Image, string) (name.Reference, error)
-}
-
-type Namer func(string) string
-
-type demon struct {
-	namer Namer
-	tags  []string
-}
-
-type defaultPublisher struct {
-	base     string
-	t        http.RoundTripper
-	auth     authn.Authenticator
-	namer    Namer
-	tags     []string
-	insecure bool
-}
-
-const (
-	// LocalDomain is a sentinel "registry" that represents side-loading images into the daemon.
-	LocalDomain = "ko.local"
-)
-
-// local only
-func MakePublisher() (Publisher, error) {
-	namer := packageWithMD5
-	repoName := os.Getenv("JCTL_DOCKER_REPO")
-	if repoName == LocalDomain { // or local flag
-		return NewDaemon(namer, []string{"latest"}), nil
-	}
-	if repoName == "" {
-		return nil, errors.New("KO_DOCKER_REPO environment variable is unset")
-	}
-	_, err := name.NewRepository(repoName)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse environment variable KO_DOCKER_REPO=%q as repository: %v", repoName, err)
-	}
-
-	return nil, nil
-}
-
-var defaultTags = []string{"latest"}
-
-func NewDefault() (Publisher, error) {
-	base := os.Getenv("JCTL_DOCKER_REPO")
-	repo, err := name.NewRepository(base)
-	if err != nil {
-		return nil, err
-	}
-	// keysはauthn.Keychain
-	auth, err := authn.DefaultKeychain.Resolve(repo.Registry)
-	if err != nil {
-		return nil, err
-	}
-	if auth == authn.Anonymous {
-		log.Println("No matching credentials were found, falling back on anonymous")
-	}
-
-	return &defaultPublisher{
-		base:  base,
-		t:     http.DefaultTransport,
-		auth:  auth,
-		namer: packageWithMD5,
-		tags:  defaultTags,
-	}, nil
-
-}
-
-func identity(in string) string { return in }
-
-func (d *defaultPublisher) Publish(img v1.Image, s string) (name.Reference, error) {
-	// https://github.com/google/go-containerregistry/issues/212
-	s = strings.ToLower(s)
-
-	// tag latest 1回で固定
-	for _, tagName := range d.tags {
-
-		var os []name.Option
-		if d.insecure {
-			os = []name.Option{name.Insecure}
-		}
-		tag, err := name.NewTag(fmt.Sprintf("%s/%s:%s", d.base, d.namer(s), tagName), os...)
-		if err != nil {
-			return nil, err
-		}
-
-		// TODO: This is slow because we have to load the image multiple times.
-		// Figure out some way to publish the manifest with another tag.
-		if err := remote.Write(tag, img, remote.WithAuth(d.auth), remote.WithTransport(d.t)); err != nil {
-			return nil, err
-		}
-	}
-
-	h, err := img.Digest()
-	if err != nil {
-		return nil, err
-	}
-	dig, err := name.NewDigest(fmt.Sprintf("%s/%s@%s", d.base, d.namer(s), h))
-	if err != nil {
-		return nil, err
-	}
-	return &dig, nil
-}
-
-func packageWithMD5(importpath string) string {
-	hasher := md5.New()
-	hasher.Write([]byte(importpath))
-	return filepath.Base(importpath) + "-" + hex.EncodeToString(hasher.Sum(nil))
-}
-
-func NewDaemon(namer Namer, tags []string) Publisher {
-	return &demon{namer, tags}
-}
-
-// Publish implements publish.Interface
-// add log
-func (d *demon) Publish(img v1.Image, s string) (name.Reference, error) {
-	// https://github.com/google/go-containerregistry/issues/212
-	s = strings.ToLower(s)
-
-	h, err := img.Digest()
-	if err != nil {
-		return nil, err
-	}
-
-	digestTag, err := name.NewTag(fmt.Sprintf("%s/%s:%s", LocalDomain, d.namer(s), h.Hex))
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err := daemon.Write(digestTag, img); err != nil {
-		return nil, err
-	}
-
-	// tag latest 1回で固定
-	for _, tagName := range d.tags {
-		tag, err := name.NewTag(fmt.Sprintf("%s/%s:%s", LocalDomain, d.namer(s), tagName))
-		if err != nil {
-			return nil, err
-		}
-
-		err = daemon.Tag(digestTag, tag)
-
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &digestTag, nil
-}
-
-func PublishImages(importpath string, pub Publisher, b Builder) (name.Reference, error) {
-	if IsLocalImport(importpath) {
-		var err error
-		importpath, err = qualifyLocalImport(importpath)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// TDOO: builderに実装
-	//if !b.IsSupportedReference(importpath) {
-	//	return nil, fmt.Errorf("importpath %q is not supported", importpath)
-	//}
-
-	img, err := b.Build(importpath)
-	if err != nil {
-		return nil, fmt.Errorf("error building %q: %v", importpath, err)
-	}
-	ref, err := pub.Publish(img, importpath)
-	if err != nil {
-		return nil, fmt.Errorf("error publishing %s: %v", importpath, err)
-	}
-	return ref, nil
-}
-
-func IsLocalImport(path string) bool {
-	return path == "." || path == ".." ||
-		strings.HasPrefix(path, "./") || strings.HasPrefix(path, "../")
-}
-
-func qualifyLocalImport(importpath string) (string, error) {
-	cfg := &packages.Config{
-		Mode: packages.NeedName,
-	}
-	pkgs, err := packages.Load(cfg, importpath)
-	if err != nil {
-		return "", err
-	}
-	if len(pkgs) != 1 {
-		return "", fmt.Errorf("found %d local packages, expected 1", len(pkgs))
-	}
-	return pkgs[0].PkgPath, nil
 }
