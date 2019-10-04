@@ -63,7 +63,7 @@ $ go run ./cmd/jctl/main.go ./testdata/cmd/long_hello_world -t 5
 building image...
 publishing image...
 kubernetes: 2019/10/04 10:45:21 job created,  name: jctl-jobd9l9b
-kubernetes: 2019/10/04 10:45:21 job execution timeout name: jctl-jobd9l9b
+kubernetes: 2019/10/04 10:45:21 job execution timeout name: jctl-jobzzzzz
 job execution timeout: context deadline exceeded
 exit status 1
 ```
