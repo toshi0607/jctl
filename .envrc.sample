@@ -1,0 +1,4 @@
+# path to your kubeconfig. see also https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
+export KUBECONFIG=
+# your container registry name
+export JCTL_DOCKER_REPO=
