@@ -31,6 +31,16 @@ func TestCli_Run(t *testing.T) {
 			wantOutputs: []string{"job execution timeout", "job created"},
 			wantCode:    1,
 		},
+		"with version": {
+			args:        []string{"path", "-v"},
+			wantOutputs: []string{"jctl version"},
+			wantCode:    1,
+		},
+		"with invalid flag": {
+			args:        []string{"path", "-foo"},
+			wantOutputs: []string{"failed to parse config"},
+			wantCode:    1,
+		},
 	}
 
 	for name, te := range tests {

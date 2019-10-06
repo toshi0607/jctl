@@ -56,7 +56,7 @@ func (c *cli) initConfig() error {
 	}
 
 	if c.Config.Version {
-		return fmt.Errorf("gig version %s", c.Version)
+		return fmt.Errorf("jctl version %s", c.Version)
 	}
 
 	if c.Config.Help || c.Config.Args.Path == "" {
