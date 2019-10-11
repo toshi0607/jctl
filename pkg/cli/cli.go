@@ -33,6 +33,7 @@ type (
 		Help       bool   `short:"h" long:"help" description:"Show this help message"`
 		KubeConfig string `long:"kubeconfig" description:"absolute path to K8s credential"`
 		TimeoutSec int    `short:"t" long:"timeoutsec" description:"timeout second"`
+		TTLSec     int32  `long:"ttlsec" description:"TTLSecondsAfterFinished of Job. This is alpha feature since v1.12" default:"300"`
 		Args       struct {
 			Path string
 		} `positional-args:"yes"`
@@ -111,7 +112,7 @@ func (c *cli) Run() int {
 		return 1
 	}
 
-	k, err := kubernetes.New(c.OutStream, c.Config.Namespace, c.Config.KubeConfig)
+	k, err := kubernetes.New(c.OutStream, c.Config.Namespace, c.Config.KubeConfig, c.Config.TTLSec)
 	if err != nil {
 		fmt.Fprintln(c.ErrStream, err)
 		return 1
