@@ -30,10 +30,12 @@ type (
 		log       *log.Logger
 		Clientset *kubernetes.Clientset
 		Namespace string
+		// TTLSecondsAfterFinished specified in Job
+		TTLSeconds int32
 	}
 )
 
-func New(outStream io.Writer, ns, kc string) (JobCli, error) {
+func New(outStream io.Writer, ns, kc string, ttlSec int32) (JobCli, error) {
 	log := log.New(outStream, "kubernetes: ", log.LstdFlags)
 
 	kubeConfig, err := getKubeConfig(kc)
@@ -50,9 +52,10 @@ func New(outStream io.Writer, ns, kc string) (JobCli, error) {
 	}
 
 	return &jobCli{
-		log:       log,
-		Namespace: ns,
-		Clientset: clientset,
+		log:        log,
+		Namespace:  ns,
+		TTLSeconds: ttlSec,
+		Clientset:  clientset,
 	}, nil
 }
 
@@ -70,7 +73,7 @@ func getKubeConfig(kc string) (string, error) {
 }
 
 func (c *jobCli) Create(ctx context.Context, image string) error {
-	job := buildJob(image, c.Namespace)
+	job := buildJob(image, c.Namespace, c.TTLSeconds)
 	createdJob, err := c.Clientset.BatchV1().Jobs(c.Namespace).Create(job)
 	if err != nil {
 		errors.Wrapf(err, "failed to create batch, namespace: %s, image: %s", c.Namespace, image)
@@ -98,7 +101,7 @@ func (c *jobCli) Create(ctx context.Context, image string) error {
 	}
 }
 
-func buildJob(image, namespace string) *batchv1.Job {
+func buildJob(image, namespace string, ttlSec int32) *batchv1.Job {
 	return &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{APIVersion: batchv1.SchemeGroupVersion.String(), Kind: "Job"},
 		ObjectMeta: metav1.ObjectMeta{
@@ -118,6 +121,7 @@ func buildJob(image, namespace string) *batchv1.Job {
 					RestartPolicy:    corev1.RestartPolicyNever,
 				},
 			},
+			TTLSecondsAfterFinished: &ttlSec,
 		},
 	}
 }
