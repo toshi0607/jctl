@@ -79,6 +79,9 @@ func (c *jobCli) Create(ctx context.Context, image string) error {
 		errors.Wrapf(err, "failed to create batch, namespace: %s, image: %s", c.Namespace, image)
 	}
 	c.log.Printf("job created,  name: %s", createdJob.Name)
+	if createdJob.Spec.TTLSecondsAfterFinished == nil {
+		c.log.Println("TTLSecondsAfterFinished is not enabled on your cluster")
+	}
 
 	w, err := c.Clientset.BatchV1().Jobs(c.Namespace).Watch(metav1.ListOptions{})
 	defer w.Stop()
