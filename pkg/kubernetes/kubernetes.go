@@ -63,26 +63,17 @@ func getKubeConfig(kc string) (string, error) {
 	if os.Getenv("KUBECONFIG") != "" {
 		return os.Getenv("KUBECONFIG"), nil
 	}
-	if home := homeDir(); home != "" {
+	if home, err := os.UserHomeDir(); home != "" && err != nil {
 		return filepath.Join(home, ".kube", "config"), nil
 	}
 	return "", errors.New("kubectx not found")
-}
-
-// TODO: 1.13で追加されたやつに変更
-func homeDir() string {
-	if h := os.Getenv("HOME"); h != "" {
-		return h
-	}
-	// windows
-	return os.Getenv("USERPROFILE")
 }
 
 func (c *jobCli) Create(ctx context.Context, image string) error {
 	job := buildJob(image, c.Namespace)
 	createdJob, err := c.Clientset.BatchV1().Jobs(c.Namespace).Create(job)
 	if err != nil {
-		log.Fatal(err)
+		errors.Wrapf(err, "failed to create batch, namespace: %s, image: %s", c.Namespace, image)
 	}
 	c.log.Printf("job created,  name: %s", createdJob.Name)
 
