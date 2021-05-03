@@ -26,7 +26,7 @@ jobs:
 
       - name: e2e test
         run: |
-          export KUBECONFIG="$(kind get kubeconfig-path)"
+          export KUBECONFIG="$(kind get kubeconfig)"
           make test_e2e
         env:
           JCTL_DOCKER_REPO: toshi0607
