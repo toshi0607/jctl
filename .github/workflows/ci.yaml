@@ -25,6 +25,8 @@ jobs:
         uses: actions/checkout@v2
 
       - name: e2e test
-        run: make test_e2e
+        run: |
+          kind export kubeconfig 
+          make test_e2e
         env:
           JCTL_DOCKER_REPO: toshi0607
