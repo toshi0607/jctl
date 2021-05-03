@@ -26,6 +26,10 @@ jobs:
 
       - name: e2e test
         run: |
+          ls
+          pwd
+          ls ${HOME}
+          ls "${HOME}/.kube"
           echo "environment-kubeconfig:" ${KUBECONFIG}
           kind export kubeconfig 
           echo "environment-kubeconfig:" ${KUBECONFIG}
