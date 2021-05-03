@@ -19,15 +19,14 @@ jobs:
         run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u toshi0607 --password-stdin
 
       - name: Set up Kubernetes cluster with kind
-        uses: engineerd/setup-kind@v0.1.0
+        uses: engineerd/setup-kind@v0.5.0
 
       - name: Check out code
         uses: actions/checkout@v2
 
       - name: e2e test
         run: |
-          export KUBECONFIG="$(kind get kubeconfig-path)"
-          echo "$KUBECONFIG"
+          cat "$HOME/.kube/config"
           make test_e2e
         env:
           JCTL_DOCKER_REPO: toshi0607
