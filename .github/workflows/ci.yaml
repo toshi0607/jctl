@@ -26,7 +26,7 @@ jobs:
 
       - name: e2e test
         run: |
-          cat "$HOME/.kube/config"
+          export KUBECONFIG="${HOME}/.kube/config"
           make test_e2e
         env:
           JCTL_DOCKER_REPO: toshi0607
