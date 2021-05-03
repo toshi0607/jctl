@@ -26,7 +26,9 @@ jobs:
 
       - name: e2e test
         run: |
+          echo "environment-kubeconfig:" ${KUBECONFIG}
           kind export kubeconfig 
+          echo "environment-kubeconfig:" ${KUBECONFIG}
           make test_e2e
         env:
           JCTL_DOCKER_REPO: toshi0607
