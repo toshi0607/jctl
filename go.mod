@@ -1,6 +1,6 @@
 module github.com/toshi0607/jctl
 
-go 1.13
+go 1.16
 
 require (
 	github.com/google/go-containerregistry v0.0.0-20190926185806-cf66aa2c31a9
