@@ -70,9 +70,10 @@ exit status 1
 
 ## Install
 
-```shell script
-$ GO111MODULE=on go get -u github.com/toshi0607/jctl
-```
+Download the binary from [GitHub Releases](https://github.com/toshi0607/jctl/releases) and drop it in your `$PATH`
+
+- [Darwin / Mac](https://github.com/toshi0607/jctl/releases/latest)
+- [Linux](https://github.com/toshi0607/jctl/releases/latest)
 
 ## Licence
 [MIT](LICENSE) file for details.
