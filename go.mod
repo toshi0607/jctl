@@ -10,7 +10,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	golang.org/x/crypto v0.0.0-20190911031432-227b76d455e7 // indirect
 	golang.org/x/net v0.0.0-20190921015927-1a5e07d1ff72 // indirect
-	golang.org/x/sys v0.0.0-20190621203818-d432491b9138 // indirect
+	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/time v0.0.0-20190921001708-c4c64cad1fd0 // indirect
 	golang.org/x/tools v0.0.0-20190926165942-a8d5d34286bd
 	k8s.io/api v0.0.0-20190920115539-4f7a4f90b2c0
