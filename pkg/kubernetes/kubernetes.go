@@ -66,7 +66,7 @@ func getKubeConfig(kc string) (string, error) {
 	if os.Getenv("KUBECONFIG") != "" {
 		return os.Getenv("KUBECONFIG"), nil
 	}
-	if home, err := os.UserHomeDir(); home != "" && err != nil {
+	if home, err := os.UserHomeDir(); home != "" && err == nil {
 		return filepath.Join(home, ".kube", "config"), nil
 	}
 	return "", errors.New("kubectx not found")
