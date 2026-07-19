@@ -69,19 +69,11 @@ func (c *cli) initConfig() error {
 }
 
 func (c *cli) Run() int {
-	ctx := context.Background()
-
 	err := c.initConfig()
 	if err != nil {
 		fmt.Fprintln(c.ErrStream, err)
 		return 1
 	}
-	timeout := defaultTimeoutSecond
-	if c.Config.TimeoutSec != 0 {
-		timeout = time.Duration(c.Config.TimeoutSec) * time.Second
-	}
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
 
 	builder, err := build.NewBuilder(c.OutStream)
 	if err != nil {
@@ -117,6 +109,15 @@ func (c *cli) Run() int {
 		fmt.Fprintln(c.ErrStream, err)
 		return 1
 	}
+
+	// The timeout bounds job execution only. Build and publish time varies
+	// with network conditions and must not eat into the job's budget.
+	timeout := defaultTimeoutSecond
+	if c.Config.TimeoutSec != 0 {
+		timeout = time.Duration(c.Config.TimeoutSec) * time.Second
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 
 	err = k.Create(ctx, ref.Name())
 	if err != nil {

@@ -76,7 +76,7 @@ func (c *jobCli) Create(ctx context.Context, image string) error {
 	job := buildJob(image, c.Namespace, c.TTLSeconds)
 	createdJob, err := c.Clientset.BatchV1().Jobs(c.Namespace).Create(ctx, job, metav1.CreateOptions{})
 	if err != nil {
-		errors.Wrapf(err, "failed to create batch, namespace: %s, image: %s", c.Namespace, image)
+		return errors.Wrapf(err, "failed to create batch, namespace: %s, image: %s", c.Namespace, image)
 	}
 	c.log.Printf("job created,  name: %s", createdJob.Name)
 	if createdJob.Spec.TTLSecondsAfterFinished == nil {
@@ -84,6 +84,9 @@ func (c *jobCli) Create(ctx context.Context, image string) error {
 	}
 
 	w, err := c.Clientset.BatchV1().Jobs(c.Namespace).Watch(ctx, metav1.ListOptions{})
+	if err != nil {
+		return errors.Wrapf(err, "failed to watch jobs, namespace: %s", c.Namespace)
+	}
 	defer w.Stop()
 	ch := w.ResultChan()
 	for {
@@ -91,10 +94,14 @@ func (c *jobCli) Create(ctx context.Context, image string) error {
 		case <-ctx.Done():
 			c.log.Printf("job execution timeout name: %s\n", createdJob.Name)
 			return errors.Wrap(ctx.Err(), "job execution timeout")
-		case obj := <-ch:
+		case obj, ok := <-ch:
+			if !ok {
+				return errors.Errorf("watch channel closed before job finished, name: %s", createdJob.Name)
+			}
 			job, ok := obj.Object.(*batchv1.Job)
 			if !ok {
 				c.log.Printf("unexpected kind object: %v", obj)
+				continue
 			}
 			if createdJob.Name == job.Name && isFinished(job) {
 				c.log.Printf("job finished, name: %s\n", createdJob.Name)
