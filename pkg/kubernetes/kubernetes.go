@@ -74,7 +74,7 @@ func getKubeConfig(kc string) (string, error) {
 
 func (c *jobCli) Create(ctx context.Context, image string) error {
 	job := buildJob(image, c.Namespace, c.TTLSeconds)
-	createdJob, err := c.Clientset.BatchV1().Jobs(c.Namespace).Create(job)
+	createdJob, err := c.Clientset.BatchV1().Jobs(c.Namespace).Create(ctx, job, metav1.CreateOptions{})
 	if err != nil {
 		errors.Wrapf(err, "failed to create batch, namespace: %s, image: %s", c.Namespace, image)
 	}
@@ -83,7 +83,7 @@ func (c *jobCli) Create(ctx context.Context, image string) error {
 		c.log.Println("TTLSecondsAfterFinished is not enabled on your cluster")
 	}
 
-	w, err := c.Clientset.BatchV1().Jobs(c.Namespace).Watch(metav1.ListOptions{})
+	w, err := c.Clientset.BatchV1().Jobs(c.Namespace).Watch(ctx, metav1.ListOptions{})
 	defer w.Stop()
 	ch := w.ResultChan()
 	for {

@@ -4,7 +4,6 @@ package cli
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -54,7 +53,7 @@ func TestCli_Run(t *testing.T) {
 			t.Errorf("[%s] status got: %d, want: %d", name, status, te.wantCode)
 		}
 		for _, v := range te.wantOutputs {
-			wantOut := fmt.Sprintf(v)
+			wantOut := v
 			if !strings.Contains(stream.String(), wantOut) {
 				t.Errorf("[%s] got: %s, want: %s", name, stream.String(), wantOut)
 			}
