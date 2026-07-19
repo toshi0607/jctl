@@ -18,7 +18,7 @@ jobs:
         run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u toshi0607 --password-stdin
 
       - name: Set up Kubernetes cluster with kind
-        uses: engineerd/setup-kind@v0.6.2
+        uses: helm/kind-action@v1
 
       - name: e2e test
         run: |
