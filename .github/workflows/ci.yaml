@@ -6,10 +6,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.4.0
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v5.6.0
         with:
           go-version-file: go.mod
         id: go
@@ -18,7 +18,7 @@ jobs:
         run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u toshi0607 --password-stdin
 
       - name: Set up Kubernetes cluster with kind
-        uses: helm/kind-action@v1
+        uses: helm/kind-action@v1.14.0
 
       - name: e2e test
         run: |
