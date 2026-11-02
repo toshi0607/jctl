@@ -5,11 +5,11 @@ version: 'v0.0.3'
 workflows:
     '.github/workflows/ci.yaml':
         - 'actions/checkout@v4.4.0'
-        - 'actions/setup-go@v5.6.0'
+        - 'actions/setup-go@v7.0.0'
         - 'helm/kind-action@v1.14.0'
     '.github/workflows/release.yml':
         - 'actions/checkout@v2.8.0'
-        - 'actions/setup-go@v2.2.0'
+        - 'actions/setup-go@v7.0.0'
         - 'goreleaser/goreleaser-action@v2.9.1'
     '.github/workflows/verify-lockfile.yml':
         - 'actions/checkout@v7.0.1'
@@ -29,14 +29,9 @@ dependencies:
         commit: 'sha1-3d3c42e5aac5ba805825da76410c181273ba90b1'
         owner_id: 44036562
         repo_id: 197814629
-    'actions/setup-go@v2.2.0':
-        ref: 'v2.2.0'
-        commit: 'sha1-bfdd3570ce990073878bf10f6b2d79082de49492'
-        owner_id: 44036562
-        repo_id: 192624594
-    'actions/setup-go@v5.6.0':
-        ref: 'v5.6.0'
-        commit: 'sha1-40f1582b2485089dde7abd97c1529aa768e1baff'
+    'actions/setup-go@v7.0.0':
+        ref: 'v7.0.0'
+        commit: 'sha1-b7ad1dad31e06c5925ef5d2fc7ad053ef454303e'
         owner_id: 44036562
         repo_id: 192624594
     'goreleaser/goreleaser-action@v2.9.1':
