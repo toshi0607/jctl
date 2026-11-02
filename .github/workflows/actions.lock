@@ -10,7 +10,7 @@ workflows:
     '.github/workflows/release.yml':
         - 'actions/checkout@v2.8.0'
         - 'actions/setup-go@v2.2.0'
-        - 'goreleaser/goreleaser-action@v2.9.1'
+        - 'goreleaser/goreleaser-action@v7.3.0'
     '.github/workflows/verify-lockfile.yml':
         - 'actions/checkout@v7.0.1'
 dependencies:
@@ -39,9 +39,9 @@ dependencies:
         commit: 'sha1-40f1582b2485089dde7abd97c1529aa768e1baff'
         owner_id: 44036562
         repo_id: 192624594
-    'goreleaser/goreleaser-action@v2.9.1':
-        ref: 'v2.9.1'
-        commit: 'sha1-b953231f81b8dfd023c58e0854a721e35037f28b'
+    'goreleaser/goreleaser-action@v7.3.0':
+        ref: 'v7.3.0'
+        commit: 'sha1-a4f02ab5355a589de60d917a659ce617ed19b3de'
         owner_id: 24697112
         repo_id: 209873006
     'helm/kind-action@v1.14.0':
