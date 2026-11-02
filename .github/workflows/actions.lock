@@ -6,7 +6,7 @@ workflows:
     '.github/workflows/ci.yaml':
         - 'actions/checkout@v4.4.0'
         - 'actions/setup-go@v5.6.0'
-        - 'helm/kind-action@v1.14.0'
+        - 'helm/kind-action@v1.15.1'
     '.github/workflows/release.yml':
         - 'actions/checkout@v2.8.0'
         - 'actions/setup-go@v2.2.0'
@@ -44,8 +44,8 @@ dependencies:
         commit: 'sha1-b953231f81b8dfd023c58e0854a721e35037f28b'
         owner_id: 24697112
         repo_id: 209873006
-    'helm/kind-action@v1.14.0':
-        ref: 'v1.14.0'
-        commit: 'sha1-ef37e7f390d99f746eb8b610417061a60e82a6cc'
+    'helm/kind-action@v1.15.1':
+        ref: 'v1.15.1'
+        commit: 'sha1-1544676c07bb3570fcb70166beaa07c4528fd4aa'
         owner_id: 15859888
         repo_id: 224289715
